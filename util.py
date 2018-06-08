@@ -8,10 +8,12 @@ def get_image(img_path, input_size, phase='train'):
     img = scm.imread(img_path)
     img = img[:,:,:3]
     if phase in ['train','valid']:
-        if np.random.random() >=0.5:
-            u_pad, d_pad = (np.random.random(2) * 40).astype(int) + 1
-            l_pad, r_pad = (np.random.random(2) * 40).astype(int) + 1
-            img = img[u_pad:-d_pad,l_pad:-r_pad,:]
+        i_start, j_start = (np.random.random(2) * 40).astype(int)
+        img = img[i_start:i_start+input_size, j_start:j_start+input_size,:]
+#         if np.random.random() >=0.5:
+#             u_pad, d_pad = (np.random.random(2) * 40).astype(int) + 1
+#             l_pad, r_pad = (np.random.random(2) * 40).astype(int) + 1
+#             img = img[u_pad:-d_pad,l_pad:-r_pad,:]
         
 #    if phase1 in ['train','valid'] and np.random.random()>=0.5:
 #        if phase2=='real':

@@ -17,6 +17,7 @@ class Network(object):
     def __init__(self, sess, args):
         self.sess = sess
         self.phase = args.phase
+        self.continue_train = args.continue_train
         self.data_dir = args.data_dir
         self.log_dir = args.log_dir
         self.ckpt_dir = args.ckpt_dir
@@ -87,9 +88,24 @@ class Network(object):
         
         batch_idxs = len(train_files) // self.batch_size
         
+        # save test_files list in txt format
+        test_txt = os.path.join(self.test_dir, 'test_files.txt')
+        try: os.remove(result_file)
+        except: pass
+        
+        with open(test_txt, 'a') as f:
+            for file in test_files:
+                f.write(file + '\n')
+        
         # variable initialize
         self.sess.run(tf.global_variables_initializer())
-            
+        
+        # load or not checkpoint
+        if self.continue_train and self.checkpoint_load():
+            print(" [*] before training, Load SUCCESS ")
+        else:
+            print(" [!] before training, no need to Load ")
+        
         count_idx = 0
         # train
         for epoch in range(self.epoch):
