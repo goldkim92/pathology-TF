@@ -90,12 +90,14 @@ class Network(object):
         
         # save test_files list in txt format
         test_txt = os.path.join(self.test_dir, 'test_files.txt')
-        try: os.remove(result_file)
-        except: pass
-        
+        valid_txt = os.path.join(self.test_dir, 'valid_files.txt')
         with open(test_txt, 'a') as f:
             for file in test_files:
                 f.write(file + '\n')
+        with open(valid_txt, 'a') as f:
+            for file in valid_files:
+                f.write(file + '\n')
+                
         
         # variable initialize
         self.sess.run(tf.global_variables_initializer())
