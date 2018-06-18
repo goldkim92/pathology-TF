@@ -166,11 +166,13 @@ class Network(object):
 
     def test(self):
         # load test-data file list
-        self.test_real_lst = glob(os.path.join('data','test','real','*'))
-        self.test_fake_lst = glob(os.path.join('data','test','fake','*'))
-        test_lst = self.test_real_lst + self.test_fake_lst
-        np.random.shuffle(test_lst)
-        self.test_lst = test_lst
+        test_txt = os.path.join(self.test_dir, 'test_files.txt')
+        with open(test_txt, 'r') as f:
+            test_files = f.readlines()
+        test_files = [file.strip() for file in test_files]
+        
+        batch_idxs = len(test_files) // self.batch_size
+        
         
         self.sess.run(tf.global_variables_initializer())
         
@@ -180,9 +182,20 @@ class Network(object):
         else:
             print(" [!] checkpoint load failed ")
         
-        # print test accuracy
-        accr = self.accuracy('test')
-        print(accr)
+        # test
+        count = 0
+        accr_count = 0
+        for i in range(batch_idxs):
+            count += self.batch_size
+            # get batch images and labels
+            lst = test_files[ i*self.batch_size : (i+1)*self.batch_size ]
+            images, labels = self.preprocessing(lst, phase='test')
+            
+            feeds = {self.place_images: images, self.place_labels: labels}
+            accr_count += self.sess.run(self.accr_count, feed_dict=feeds)
+            print(accr_count)
+        
+        print('test accuracy: {}'.format(accr_count/count));
         
     
     def real_test(self):

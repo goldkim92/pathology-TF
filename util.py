@@ -10,29 +10,20 @@ def get_image(img_path, input_size, phase='train'):
     if phase in ['train','valid']:
         i_start, j_start = (np.random.random(2) * 40).astype(int)
         img = img[i_start:i_start+input_size, j_start:j_start+input_size,:]
-#         if np.random.random() >=0.5:
-#             u_pad, d_pad = (np.random.random(2) * 40).astype(int) + 1
-#             l_pad, r_pad = (np.random.random(2) * 40).astype(int) + 1
-#             img = img[u_pad:-d_pad,l_pad:-r_pad,:]
-        
-#    if phase1 in ['train','valid'] and np.random.random()>=0.5:
-#        if phase2=='real':
-#            img = img[20:198,14:164,:]
-#        elif phase2 == 'fake':
-#            img = img[30:-30,30:-30,:]
-    
-    img_resize = scm.imresize(img,[input_size,input_size,3])
-    
-    img_resize = img_resize/127.5 - 1.
+    else: # phase == 'test'
+        i_start, j_start = 30,30;
+        img = img[i_start:i_start+input_size, j_start:j_start+input_size,:]
+                
+    img = img/127.5 - 1.
     
     if phase == 'train':
         rand = np.random.random()
         if rand >= 0.666:
-            img_resize = np.flip(img_resize,1)
+            img = np.flip(img,1)
         elif rand >= 0.333:
-            img_resize = np.flip(img_resize,0)
+            img = np.flip(img,0)
             
-    return img_resize
+    return img
 
 def inverse_image(img):
     img = (img + 1.) * 127.5
