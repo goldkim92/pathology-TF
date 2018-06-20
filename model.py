@@ -54,7 +54,8 @@ class Network(object):
         self.place_labels = tf.placeholder(tf.float32, [None,self.label_n], name='labels')
         
         # loss funciton
-        self.pred = module.classifier(self.place_images, self.options, reuse=False, name='net')
+        # self.pred = module.classifier(self.place_images, self.options, reuse=False, name='net')
+        self.pred = module.DenseNet(self.place_images, self.nf, self.label_n, self.phase).model
         self.loss = module.cls_loss(logits=self.pred, labels=self.place_labels)
         
         # accuracy

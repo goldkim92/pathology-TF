@@ -11,14 +11,34 @@ def linear(input_, output_dim, stddev=0.02, name='linear'):
     with tf.variable_scope(name):
         return slim.fully_connected(input_, output_dim, activation_fn=None,
                                     weights_initializer=tf.contrib.layers.xavier_initializer())
+
     
-# def maxpool2d(input_, ks=2, s=2, padding='VALID',name='maxpool2d'):
-#     with tf.variable_scope(name):
-#         return slim.max_pool2d(input_, ks, s, padding=padding)
+def batch_norm(x, phase, name='batch_norm'):
+    if phase is 'train':
+        phase = True
+    else:
+        phase = False
+    return tf.contrib.layers.batch_norm(x, decay=0.9, is_training=phase, 
+                                        epsilon=1e-5, center=True, scale=True, scope=name)
 
-def batch_norm(x, name='batch_norm'):
-    return tf.contrib.layers.batch_norm(x, decay=0.9, updates_collections=None, epsilon=1e-5, scale=True, scope=name)
 
+def dropout(x, rate, phase):
+    if phase is 'train':
+        phase = True
+    else:
+        phase = False
+    return tf.layers.dropout(inputs=x, rate=rate, training=phase)
+
+
+def average_pooling(x, ks=[2,2], s=2, padding='VALID'):
+    return tf.layers.average_pooling2d(inputs=x, pool_size=ks, strides=s, padding=padding)
+
+
+def max_pooling(x, ks=[3,3], s=2, padding='VALID'):
+    return tf.layers.max_pooling2d(inputs=x, pool_size=ks, strides=s, padding=padding)
+
+def flatten(x):
+    return tf.contrib.layers.flatten(x)
 
 def relu(x, name='relu'):
     return tf.nn.relu(x)
