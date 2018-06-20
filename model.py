@@ -36,8 +36,8 @@ class Network(object):
         self.ckpt_step = args.ckpt_step
         
         # hyper parameter for building module
-        OPTIONS = namedtuple('options', ['batch_size', 'input_size', 'image_c', 'nf', 'label_n'])
-        self.options = OPTIONS(self.batch_size, self.input_size, self.image_c, self.nf, self.label_n)
+        OPTIONS = namedtuple('options', ['batch_size', 'nf', 'label_n', 'phase'])
+        self.options = OPTIONS(self.batch_size, self.nf, self.label_n, self.phase)
         
         # build model & make checkpoint saver
         self.build_model()
@@ -54,8 +54,8 @@ class Network(object):
         self.place_labels = tf.placeholder(tf.float32, [None,self.label_n], name='labels')
         
         # loss funciton
-        # self.pred = module.classifier(self.place_images, self.options, reuse=False, name='net')
-        self.pred = module.DenseNet(self.place_images, self.nf, self.label_n, self.phase).model
+        self.pred = module.classifier(self.place_images, self.options, reuse=False, name='net')
+        # self.pred = module.DenseNet(self.place_images, self.nf, self.label_n, self.phase).model
         self.loss = module.cls_loss(logits=self.pred, labels=self.place_labels)
         
         # accuracy

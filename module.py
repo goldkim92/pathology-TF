@@ -2,10 +2,14 @@ import tensorflow as tf
 from ops import conv2d, linear, batch_norm, dropout, relu, max_pooling, average_pooling, flatten
 
 def classifier(images, options, reuse=False, name='classifier'):
-    x = relu(batch_norm(conv2d(images, options.nf, ks=5, s=2, name='conv1'), 'bn1')) # 56*56*nf
-    x = relu(batch_norm(conv2d(x, 2*options.nf, ks=5, s=2, name='conv2'), 'bn2')) # 28*28*(2*nf)
-    x = relu(batch_norm(conv2d(x, 4*options.nf, ks=5, s=2, name='conv3'), 'bn3')) # 14*14*(4*nf)
-    x = relu(batch_norm(conv2d(x, 8*options.nf, ks=5, s=2, name='conv4'), 'bn4')) # 7*7*(8*nf)
+    # dropout_rate = 0.2
+    x = relu(batch_norm(conv2d(images, options.nf, ks=5, s=2, name='conv1'), options.phase, 'bn1')) # 56*56*nf
+    # x = dropout(x, dropout_rate, options.phase)
+    x = relu(batch_norm(conv2d(x, 2*options.nf, ks=5, s=2, name='conv2'), options.phase, 'bn2')) # 28*28*(2*nf)
+    # x = dropout(x, dropout_rate, options.phase)
+    x = relu(batch_norm(conv2d(x, 4*options.nf, ks=5, s=2, name='conv3'), options.phase, 'bn3')) # 14*14*(4*nf)
+    # x = dropout(x, dropout_rate, options.phase)
+    x = relu(batch_norm(conv2d(x, 8*options.nf, ks=5, s=2, name='conv4'), options.phase, 'bn4')) # 7*7*(8*nf)
     
     x = linear(tf.reshape(x, [options.batch_size, 7*7*(8*options.nf)]), options.label_n, name='linear') 
     return tf.nn.softmax(x)
