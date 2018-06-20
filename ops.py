@@ -18,7 +18,7 @@ def batch_norm(x, phase, name='batch_norm'):
         phase = True
     else:
         phase = False
-    return tf.contrib.layers.batch_norm(x, decay=0.9, is_training=phase, 
+    return tf.contrib.layers.batch_norm(x, decay=0.9, is_training=phase, updates_collections=None,
                                         epsilon=1e-5, center=True, scale=True, scope=name)
 
 
