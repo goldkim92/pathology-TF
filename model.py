@@ -36,8 +36,8 @@ class Network(object):
         self.ckpt_step = args.ckpt_step
         
         # hyper parameter for building module
-        OPTIONS = namedtuple('options', ['batch_size', 'input_size', 'image_c', 'nf', 'label_n'])
-        self.options = OPTIONS(self.batch_size, self.input_size, self.image_c, self.nf, self.label_n)
+        OPTIONS = namedtuple('options', ['batch_size', 'nf', 'label_n', 'phase'])
+        self.options = OPTIONS(self.batch_size, self.nf, self.label_n, self.phase)
         
         # build model & make checkpoint saver
         self.build_model()
@@ -55,6 +55,7 @@ class Network(object):
         
         # loss funciton
         self.pred = module.classifier(self.place_images, self.options, reuse=False, name='net')
+        # self.pred = module.DenseNet(self.place_images, self.nf, self.label_n, self.phase).model
         self.loss = module.cls_loss(logits=self.pred, labels=self.place_labels)
         
         # accuracy
@@ -79,29 +80,37 @@ class Network(object):
     def train(self):
         
         # load train-data & valid-data file list (label & image file)
-        files = glob(os.path.join('data','224','*')) # len(files) = 6985
-        usable_files = [file for file in files if re.split('[/_.]+', file)[2] in self.labels_dic.keys()] # len(usable_files) = 5000
-        np.random.shuffle(usable_files)
-        train_files = usable_files[:4000] # 4000
-        valid_files = usable_files[4000:4500] # 500
-        test_files = usable_files[4500:] # 500
+        if self.continue_train:
+            train_files = list()
+            valid_files = list()
+            with open(os.path.join('assets','conv_drop','test', 'train_files.txt'), 'r') as f:
+                train_files = f.read().splitlines()
+            with open(os.path.join('assets','conv_drop','test', 'valid_files.txt'), 'r') as f:
+                valid_files = f.read().splitlines()
+            
+        else: # self.continue_train == False
+            files = glob(os.path.join('data','224','*')) # len(files) = 6985
+            usable_files = [file for file in files if re.split('[/_.]+', file)[2] in self.labels_dic.keys()] # len(usable_files) = 5000
+            np.random.shuffle(usable_files)
+            train_files = usable_files[:4000] # 4000
+            valid_files = usable_files[4000:4500] # 500
+            test_files = usable_files[4500:] # 500
+
+            # save test_files list in txt format
+            test_txt = os.path.join(self.test_dir, 'test_files.txt')
+            valid_txt = os.path.join(self.test_dir, 'valid_files.txt')
+            train_txt = os.path.join(self.test_dir, 'train_files.txt')
+            with open(test_txt, 'a') as f:
+                for file in test_files:
+                    f.write(file + '\n')
+            with open(valid_txt, 'a') as f:
+                for file in valid_files:
+                    f.write(file + '\n')
+            with open(train_txt, 'a') as f:
+                for file in train_files:
+                    f.write(file + '\n')
         
-        batch_idxs = len(train_files) // self.batch_size
-        
-        # save test_files list in txt format
-        test_txt = os.path.join(self.test_dir, 'test_files.txt')
-        valid_txt = os.path.join(self.test_dir, 'valid_files.txt')
-        train_txt = os.path.join(self.test_dir, 'train_files.txt')
-        with open(test_txt, 'a') as f:
-            for file in test_files:
-                f.write(file + '\n')
-        with open(valid_txt, 'a') as f:
-            for file in valid_files:
-                f.write(file + '\n')
-        with open(train_txt, 'a') as f:
-            for file in train_files:
-                f.write(file + '\n')
-                
+        batch_idxs = len(train_files) // self.batch_size        
         
         # variable initialize
         self.sess.run(tf.global_variables_initializer())
@@ -296,9 +305,11 @@ class Network(object):
         print(" [*] Reading checkpoint...")
         
         ckpt = tf.train.get_checkpoint_state(self.ckpt_dir)
+        # ckpt = tf.train.get_checkpoint_state(os.path.join('assets','conv_drop','checkpoint'))
         if ckpt and ckpt.model_checkpoint_path:
             ckpt_name = os.path.basename(ckpt.model_checkpoint_path)
             self.saver.restore(self.sess, os.path.join(self.ckpt_dir, ckpt_name))
+            # self.saver.restore(self.sess, os.path.join(os.path.join('assets','conv_drop','checkpoint'), ckpt_name))
             return True
         else:
             return False
