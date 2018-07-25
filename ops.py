@@ -5,8 +5,8 @@ import tensorflow.contrib.slim as slim
 def conv2d(input_, output_dim, ks=3,s=1,padding='SAME',name='conv2d'):
     with tf.variable_scope(name):
         return slim.conv2d(input_, output_dim, ks, s, padding=padding,
-                           weights_initializer=tf.contrib.layers.xavier_initializer())
-     
+                           )
+     # weights_initializer=tf.contrib.layers.xavier_initializer()
 def linear(input_, output_dim, stddev=0.02, name='linear'):
     with tf.variable_scope(name):
         return slim.fully_connected(input_, output_dim, activation_fn=None,
@@ -34,7 +34,7 @@ def average_pooling(x, ks=[2,2], s=2, padding='VALID'):
     return tf.layers.average_pooling2d(inputs=x, pool_size=ks, strides=s, padding=padding)
 
 
-def max_pooling(x, ks=[3,3], s=2, padding='VALID'):
+def max_pooling(x, ks=[2,2], s=2, padding='VALID'):
     return tf.layers.max_pooling2d(inputs=x, pool_size=ks, strides=s, padding=padding)
 
 def flatten(x):
