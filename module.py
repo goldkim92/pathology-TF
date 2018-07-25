@@ -3,20 +3,32 @@ from ops import conv2d, linear, batch_norm, dropout, relu, max_pooling, average_
 
 def classifier(images, options, reuse=False, name='classifier'):
     # dropout_rate = 0.2
-    x = relu(batch_norm(conv2d(images, options.nf, ks=5, s=2, name='conv1'), options.phase, 'bn1')) # 56*56*nf
+    
+    x = relu(batch_norm(conv2d(images, options.nf, ks=3, s=1, name='conv1_1'), options.phase, 'bn1_1')) # 112*112*nf
+    x = relu(batch_norm(conv2d(images, options.nf, ks=3, s=1, name='conv1_2'), options.phase, 'bn1_2')) # 112*112*nf
+    x = max_pooling(x) # 56*56*nf
     # x = dropout(x, dropout_rate, options.phase)
-    x = relu(batch_norm(conv2d(x, 2*options.nf, ks=5, s=2, name='conv2'), options.phase, 'bn2')) # 28*28*(2*nf)
+    
+    x = relu(batch_norm(conv2d(x, 2*options.nf, ks=3, s=1, name='conv2_1'), options.phase, 'bn2_1')) # 56*56*(2*nf)
+    x = relu(batch_norm(conv2d(x, 2*options.nf, ks=3, s=1, name='conv2_2'), options.phase, 'bn2_2')) # 56*56*(2*nf)
+    x = max_pooling(x) # 28*28*nf
     # x = dropout(x, dropout_rate, options.phase)
-    x = relu(batch_norm(conv2d(x, 4*options.nf, ks=5, s=2, name='conv3'), options.phase, 'bn3')) # 14*14*(4*nf)
+    
+    x = relu(batch_norm(conv2d(x, 4*options.nf, ks=3, s=1, name='conv3_1'), options.phase, 'bn3_1')) # 28*28*(4*nf)
+    x = relu(batch_norm(conv2d(x, 4*options.nf, ks=3, s=1, name='conv3_2'), options.phase, 'bn3_2')) # 28*28*(4*nf)
+    x = max_pooling(x) # 14*14*nf
     # x = dropout(x, dropout_rate, options.phase)
-    x = relu(batch_norm(conv2d(x, 8*options.nf, ks=5, s=2, name='conv4'), options.phase, 'bn4')) # 7*7*(8*nf)
+    
+    x = relu(batch_norm(conv2d(x, 8*options.nf, ks=3, s=1, name='conv4_1'), options.phase, 'bn4_1')) # 14*14*(8*nf)
+    x = relu(batch_norm(conv2d(x, 8*options.nf, ks=3, s=1, name='conv4_2'), options.phase, 'bn4_2')) # 14*14*(8*nf)
+    x = max_pooling(x) # 7*7*nf
     
     x = linear(tf.reshape(x, [options.batch_size, 7*7*(8*options.nf)]), options.label_n, name='linear') 
-    return tf.nn.softmax(x)
+    return x
 
 
 def cls_loss(logits, labels):
-    return tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logits,labels=labels))
+    return tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=logits,labels=labels))
 
 
 
@@ -121,7 +133,7 @@ class DenseNet():
         print(x.get_shape().as_list())
         x = flatten(x)
         x = linear(x, self.label_n, name='linear2')
-        return tf.nn.softmax(x)
+        return x
 
         # 100 Layer
 #         x = Batch_Normalization(x, training=self.training, scope='linear_batch')
@@ -131,5 +143,5 @@ class DenseNet():
 #         x = Linear(x)
 
 
-        # x = tf.reshape(x, [-1, 10])
-        return x
+#         # x = tf.reshape(x, [-1, 10])
+#         return x

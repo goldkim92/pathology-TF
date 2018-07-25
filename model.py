@@ -83,9 +83,9 @@ class Network(object):
         if self.continue_train:
             train_files = list()
             valid_files = list()
-            with open(os.path.join('assets','conv_drop','test', 'train_files.txt'), 'r') as f:
+            with open(os.path.join(self.test_dir, 'train_files.txt'), 'r') as f:
                 train_files = f.read().splitlines()
-            with open(os.path.join('assets','conv_drop','test', 'valid_files.txt'), 'r') as f:
+            with open(os.path.join(self.test_dir, 'valid_files.txt'), 'r') as f:
                 valid_files = f.read().splitlines()
             
         else: # self.continue_train == False
@@ -148,10 +148,6 @@ class Network(object):
                     train_accr = self.accuracy('train')
                     valid_accr = self.accuracy('valid')
                     
-#                     test_accr = self.accuracy('test')
-#                     test_real_accr = self.accuracy('test_real')
-#                     test_fake_accr = self.accuracy('test_fake')
-                    
                     self.writer_cost.add_summary(summary_loss, count_idx)
 
                     summary = self.sess.run(self.sum_accr, feed_dict={self.accr:train_accr})
@@ -159,15 +155,6 @@ class Network(object):
 
                     summary = self.sess.run(self.sum_accr, feed_dict={self.accr:valid_accr})
                     self.writer_valid_accr.add_summary(summary, count_idx)
-                    
-#                     summary = self.sess.run(self.sum_accr, feed_dict={self.accr:test_accr})
-#                     self.writer_test_accr.add_summary(summary, count_idx)
-
-#                     summary = self.sess.run(self.sum_accr, feed_dict={self.accr:test_real_accr})
-#                     self.writer_test_real_accr.add_summary(summary, count_idx)
-
-#                     summary = self.sess.run(self.sum_accr, feed_dict={self.accr:test_fake_accr})
-#                     self.writer_test_fake_accr.add_summary(summary, count_idx)
                     
                     print('train: {:.04f}'.format(train_accr))
                     print('valid: {:.04f}'.format(valid_accr))
@@ -211,52 +198,12 @@ class Network(object):
         print('test accuracy: {}'.format(accr_count/count));
         
     
-    def real_test(self):
-        # load real_test-data file list
-        lists = glob(os.path.join('data','real_test','*'))
-        lists.sort(key=util.natural_keys)
-        # np.random.shuffle(lists)
-        
-        self.sess.run(tf.global_variables_initializer())
-        
-        # load checkpoint
-        if self.checkpoint_load():
-            print(" [*] checkpoint load SUCCESS ")
-        else:
-            print(" [!] checkpoint load failed ")
-        
-        # remove file if exist
-        result_file = os.path.join(self.test_dir, 'result.txt')
-        try: os.remove(result_file)
-        except: pass
-        
-        accr = 0.
-        fake_pred = []
-        i=0
-        for i in range(len(lists) // self.batch_size):
-            # get batch images and labels
-            lst = lists[ i*self.batch_size : (i+1)*self.batch_size ]
-            images, labels = self.preprocessing(lst, phase='test')
-            feeds = {self.place_images: images, self.place_labels: labels}
-            cur_accr,fake_pred = self.sess.run([self.accr_count, self.pred[:,0]], feed_dict=feeds)
-            accr += cur_accr
-            print(len(fake_pred))
-            # write in file
-            with open(result_file, 'a') as f:
-                for i in range(len(lst)):
-                    file_name = lst[i].split('/')[2]
-                    file_name = file_name.split('.')[0]
-                    f.write(file_name + ',' + '{:.4f}'.format(fake_pred[i]) + '\n')
 
-    
     def summary(self):
         # summary writer
         self.writer_cost = tf.summary.FileWriter(os.path.join(self.log_dir,'cost'), self.sess.graph)
         self.writer_train_accr = tf.summary.FileWriter(os.path.join(self.log_dir,'train_accr'),self.sess.graph)
         self.writer_valid_accr = tf.summary.FileWriter(os.path.join(self.log_dir,'valid_accr'),self.sess.graph)
-#         self.writer_test_accr = tf.summary.FileWriter(os.path.join(self.log_dir,'test_accr'),self.sess.graph)
-#         self.writer_test_real_accr = tf.summary.FileWriter(os.path.join(self.log_dir,'test_real_accr'),self.sess.graph)
-#         self.writer_test_fake_accr = tf.summary.FileWriter(os.path.join(self.log_dir,'test_fake_accr'),self.sess.graph)
         
         # summary session
         self.sum_loss = tf.summary.scalar('loss value',self.loss)
@@ -271,15 +218,6 @@ class Network(object):
         elif phase == 'valid':
             idxs = len(self.valid_lst) // self.batch_size
             lists = self.valid_lst
-#         elif phase == 'test':
-#             idxs = len(self.test_lst) // self.batch_size
-#             lists= self.test_lst
-#         elif phase == 'test_real':
-#             idxs = len(self.test_real_lst) // self.batch_size
-#             lists = self.test_real_lst
-#         elif phase == 'test_fake':
-#             idxs = len(self.test_fake_lst) // self.batch_size
-#             lists = self.test_fake_lst
             
         accr = 0.
         i=0

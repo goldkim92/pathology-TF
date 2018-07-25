@@ -8,7 +8,7 @@ def get_image(img_path, input_size, phase='train'):
     img = scm.imread(img_path)
     img = img[:,:,:3]
     if phase in ['train','valid']:
-        i_start, j_start = (np.random.random(2) * 40).astype(int)
+        i_start, j_start = (np.random.random(2) * 112).astype(int)
         img = img[i_start:i_start+input_size, j_start:j_start+input_size,:]
     else: # phase == 'test'
         i_start, j_start = 30,30;
